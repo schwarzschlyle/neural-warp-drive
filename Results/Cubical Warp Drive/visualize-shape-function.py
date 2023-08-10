@@ -9,6 +9,7 @@ import scipy.integrate as spi
 from scipy.interpolate import interp1d
 import os
 import argparse
+from plotly.io import write_image
 
 
 
@@ -78,16 +79,18 @@ def main(args):
     # Create the 3D density plot with Plotly using the 'Viridis' color scale
     fig = go.Figure(data=[
         go.Scatter3d(x=X.ravel(), y=Y.ravel(), z=Z.ravel(), mode='markers',
-                    marker=dict(size=3, color=predictions.ravel(), colorbar=dict(title='Density'))),
+                    marker=dict(size=3, colorscale = 'Inferno'
+                    color=predictions.ravel(), colorbar=dict(title='Normalized f(x,y,z) value'))),
     ])
 
     fig.update_layout(scene=dict(
                         xaxis_title='X',
                         yaxis_title='Y',
                         zaxis_title='Z'),
-                    title='Assymetric Warp Drive Shape Function')
+                    title='Warp Drive Shape Function')
 
     fig.show()
+    fig.write_json(f"{model_name}/shape.json")
 
 
 
@@ -101,33 +104,47 @@ def main(args):
     fig_x = go.Figure(data=[go.Contour(x=y_values, y=z_values, z=predictions[1, :, :])])
     fig_x.update_layout(title='Slice for x=0')
     fig_x.show()
+    fig_x.write_json(f"{model_name}/xc.json")
+
+
+
 
     # Plot the 3D surface for y=0 slice
     fig_y = go.Figure(data=[go.Contour(x=x_values, y=z_values, z=predictions[:, y_slice, :])])
     fig_y.update_layout(title='Slice for y=0')
     fig_y.show()
+    fig_y.write_json(f"{model_name}/yc.json")
+
+
 
     # Plot the 3D surface for z=0 slice
     fig_z = go.Figure(data=[go.Contour(x=x_values, y=y_values, z=predictions[:, :, z_slice])])
     fig_z.update_layout(title='Slice for z=0')
     fig_z.show()
-
+    fig_z.write_json(f"{model_name}/zc.json")
 
 
     # Plot the 3D surface for x=0 slice
     fig_x = go.Figure(data=[go.Surface(x=y_values, y=z_values, z=predictions[1, :, :])])
     fig_x.update_layout(title='Slice for x=0')
     fig_x.show()
+    fig_x.write_json(f"{model_name}/xs.json")
+
+
+
 
     # Plot the 3D surface for y=0 slice
     fig_y = go.Figure(data=[go.Surface(x=x_values, y=z_values, z=predictions[:, y_slice, :])])
     fig_y.update_layout(title='Slice for y=0')
     fig_y.show()
+    fig_y.write_json(f"{model_name}/ys.json")
+
 
     # Plot the 3D surface for z=0 slice
     fig_z = go.Figure(data=[go.Surface(x=x_values, y=y_values, z=predictions[:, :, z_slice])])
     fig_z.update_layout(title='Slice for z=0')
     fig_z.show()
+    fig_z.write_json(f"{model_name}/zs.json")
 
 
     
