@@ -1,0 +1,1 @@
+Third shapeModel Name: third_shapeDomain: 50Boundary: 50Width: 150Depth:  20Rate: 0.01Epochs: 10000

@@ -1,0 +1,1 @@
+Removing derivative conditionModel Name: shape_fiveDomain: 500Boundary: 500Width: 150Depth:  20Rate: 0.01Epochs: 10000

@@ -1,0 +1,1 @@
+boundary priorityModel Name: boundary_priorityDomain: 2000Boundary: 50Width: 150Depth:  20Rate: 0.01Epochs: 15000

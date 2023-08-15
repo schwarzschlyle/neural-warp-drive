@@ -1,0 +1,1 @@
+Next initial model, coming right up!Model Name: shape_oneDomain: 500Boundary: 500Width: 150Depth:  20Rate: 0.01Epochs: 15000

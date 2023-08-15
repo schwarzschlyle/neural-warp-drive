@@ -50,16 +50,15 @@ def predict_shape_function(domain, boundary, width, depth, rate, epochs):
         df_x = dde.grad.jacobian(y, x, i=0, j=0)
         df_y = dde.grad.jacobian(y, x, i=0, j=1)
         df_z = dde.grad.jacobian(y, x, i=0, j=2)
-        first_factor = (x[:,0:1]**2 + x[:,1:2]**2)/((x[:,0:1]**2 + x[:,1:2]**2 + x[:,2:3]**2)**(3/2))
-        squared_terms = ((x[:,0:1]**2)*(df_x)) + ((x[:,1:2]**2)*(df_y)) + ((x[:,2:]**2)*(df_z))
-        cross_terms =  (x[:,0:1] * x[:,1:2] * df_x * df_y)+(x[:,0:1] * x[:,2:] * df_x * df_z)+(x[:,1:2] * x[:,2:] * df_y * df_z)
-        return (squared_terms + (2*cross_terms)) 
+        first_factor = (x[:,0:1]**2 + x[:,1:2]**2)/((x[:,0:1]**2 + x[:,1:2]**2 + x[:,2:3]**2)**(2))
+        squared_terms = ((x[:,0:1]**2)*(df_x)**2) + ((x[:,1:2]**2)*(df_y)**2) + ((x[:,2:3]**2)*(df_z)**2)
+        cross_terms =  (x[:,0:1] * x[:,1:2] * df_x * df_y)+(x[:,0:1] * x[:,2:3] * df_x * df_z)+(x[:,1:2] * x[:,2:3] * df_y * df_z)
+        return first_factor*(squared_terms + (2*cross_terms)) 
 
     
 
     geom = dde.geometry.geometry_3d.Cuboid([-10,-10,-10],[10,10,10])
 
-    
     passenger = dde.geometry.geometry_3d.Cuboid([-2,-2,-2],[2,2,2])
 
 
@@ -82,19 +81,18 @@ def predict_shape_function(domain, boundary, width, depth, rate, epochs):
     
     
     passenger_bc = dde.icbc.DirichletBC(geom, 
-                                        lambda x: 1.5, 
+                                        lambda x: 2, 
                                         boundary_inner)
     
     
-    passenger_bc_2 = dde.icbc.NeumannBC(geom, 
-                                        lambda x: 0, 
-                                        boundary_inner)
+    # passenger_bc_2 = dde.icbc.NeumannBC(geom, 
+    #                                     lambda x: 0, 
+    #                                     boundary_inner)
     
     
     data = dde.data.PDE(
         geom, pde, [asymptotic_bc,
-                   passenger_bc,
-                   passenger_bc_2], 
+                   passenger_bc], 
                    num_domain=domain,
                    num_boundary=boundary)
 
@@ -216,34 +214,10 @@ def main(args):
     save_description(model_name, domain, boundary, width, depth, rate, epochs)
 
 
-    # if history == False:
+    if history == False:
        
-    #     model = predict_shape_function(domain, boundary, width, depth, rate, epochs)
+        model = predict_shape_function(domain, boundary, width, depth, rate, epochs)
 
-    #     # Generate sample data points
-    #     x_values = np.linspace(-10, 10, 30)
-    #     y_values = np.linspace(-10, 10, 30)
-    #     z_values = np.linspace(-10, 10, 30)
-    #     X, Y, Z = np.meshgrid(x_values, y_values, z_values)
-
-    #     # Evaluate the model on the data points
-    #     input_data = np.vstack((X.ravel(), Y.ravel(), Z.ravel())).T
-    #     predictions = model.predict(input_data)
-    #     predictions = predictions.reshape(X.shape)
-
-
-    #     # Save the data to binary files
-        
-    #     np.save(f'{model_name}/x.npy', x_values)
-    #     np.save(f'{model_name}/y.npy', y_values)
-    #     np.save(f'{model_name}/z.npy', z_values)
-    #     np.save(f'{model_name}/pred.npy', predictions)
-        
-    if history == True:
-
-        model = predict_shape_function_with_history(domain, boundary, width, depth, rate, epochs, model_name)
-
-     
         # Generate sample data points
         x_values = np.linspace(-10, 10, 30)
         y_values = np.linspace(-10, 10, 30)
@@ -255,12 +229,82 @@ def main(args):
         predictions = model.predict(input_data)
         predictions = predictions.reshape(X.shape)
 
+        # Calculate derivatives using numerical differentiation
+        dx = x_values[1] - x_values[0]
+        dy = y_values[1] - y_values[0]
+        dz = z_values[1] - z_values[0]
+
+        dfdx = np.gradient(predictions, dx, axis=0)
+        dfdy = np.gradient(predictions, dy, axis=1)
+        dfdz = np.gradient(predictions, dz, axis=2)
+
         # Save the data to binary files
-        
+    
         np.save(f'{model_name}/x.npy', x_values)
         np.save(f'{model_name}/y.npy', y_values)
         np.save(f'{model_name}/z.npy', z_values)
         np.save(f'{model_name}/pred.npy', predictions)
+        np.save(f'{model_name}/dfxpred.npy', dfdx)
+        np.save(f'{model_name}/dfypred.npy', dfdy)
+        np.save(f'{model_name}/dfzpred.npy', dfdz)
+
+        
+    if history == True:
+
+        model = predict_shape_function_with_history(domain, boundary, width, depth, rate, epochs, model_name)
+
+     
+        # # Generate sample data points
+        # x_values = np.linspace(-10, 10, 30)
+        # y_values = np.linspace(-10, 10, 30)
+        # z_values = np.linspace(-10, 10, 30)
+        # X, Y, Z = np.meshgrid(x_values, y_values, z_values)
+
+        # # Evaluate the model on the data points
+        # input_data = np.vstack((X.ravel(), Y.ravel(), Z.ravel())).T
+        # predictions = model.predict(input_data)
+        # predictions = predictions.reshape(X.shape)
+
+        # # Save the data to binary files
+        
+        # np.save(f'{model_name}/x.npy', x_values)
+        # np.save(f'{model_name}/y.npy', y_values)
+        # np.save(f'{model_name}/z.npy', z_values)
+        # np.save(f'{model_name}/pred.npy', predictions)
+
+        # Generate sample data points
+        x_values = np.linspace(-10, 10, 30)
+        y_values = np.linspace(-10, 10, 30)
+        z_values = np.linspace(-10, 10, 30)
+        X, Y, Z = np.meshgrid(x_values, y_values, z_values)
+
+        # Evaluate the model on the data points
+        input_data = np.vstack((X.ravel(), Y.ravel(), Z.ravel())).T
+        predictions = model.predict(input_data)
+        predictions = predictions.reshape(X.shape)
+
+        # Calculate derivatives using numerical differentiation
+        dx = x_values[1] - x_values[0]
+        dy = y_values[1] - y_values[0]
+        dz = z_values[1] - z_values[0]
+
+        dfdx = np.gradient(predictions, dx, axis=0)
+        dfdy = np.gradient(predictions, dy, axis=1)
+        dfdz = np.gradient(predictions, dz, axis=2)
+
+        # Save the data to binary files
+    
+        np.save(f'{model_name}/x.npy', x_values)
+        np.save(f'{model_name}/y.npy', y_values)
+        np.save(f'{model_name}/z.npy', z_values)
+        np.save(f'{model_name}/pred.npy', predictions)
+        np.save(f'{model_name}/dfxpred.npy', dfdx)
+        np.save(f'{model_name}/dfypred.npy', dfdy)
+        np.save(f'{model_name}/dfzpred.npy', dfdz)
+
+
+
+
 
 
         model_history = []
@@ -441,7 +485,7 @@ def main(args):
             imageio.mimsave(f'{model_name}/ys.gif', frames_ys, duration=0.1)
             imageio.mimsave(f'{model_name}/zs.gif', frames_zs, duration=0.1)
 
-        # os.rmdir(f"/{model_name}/temp_model_history")
+        os.rmdir(f"/{model_name}/temp_model_history")
 
         
 

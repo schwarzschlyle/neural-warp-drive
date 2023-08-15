@@ -1,0 +1,1 @@
+This is a test derivative scriptModel Name: test_derivativeDomain: 500Boundary: 500Width: 50Depth:  1Rate: 0.01Epochs: 10000

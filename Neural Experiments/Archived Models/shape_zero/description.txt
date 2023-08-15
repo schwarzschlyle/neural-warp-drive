@@ -1,0 +1,1 @@
+This is shape zero... Testing...Model Name: shape_zeroDomain: 1000Boundary: 1000Width: 200Depth:  2Rate: 0.01Epochs: 20000
